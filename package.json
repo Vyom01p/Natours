@@ -20,9 +20,11 @@
     "debug": "node --inspect server.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "express": "^4.22.2",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^5.13.23",
     "morgan": "^1.11.0",
     "slugify": "^1.6.9",
