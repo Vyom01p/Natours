@@ -1,5 +1,5 @@
 const { promisify } = require('util');
-const crpyto = require('crypto');
+const crypto = require('crypto');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const jwt = require('jsonwebtoken');
@@ -145,7 +145,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     .update(req.params.token)
     .digest('hex');
 
-  const user = await user.findOne({
+  const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
@@ -165,9 +165,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   //1) Get user form the collection
-  const user = await user.findById(req.user.id).select('+password');
+  const user = await User.findById(req.user.id).select('+password');
   //2) check if theposted current password is correct
-  if (!(await user.correctPassword(req.user.passwordCurrent, user.password))) {
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
     return next(new AppError('Your current password is wrong', 401));
   }
   //3)If so , update password
