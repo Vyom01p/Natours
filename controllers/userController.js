@@ -15,6 +15,10 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 //Do not update passwords with this
 exports.getUser = factory.getOne(User);
 exports.getAllUsers = factory.getAll(User);
