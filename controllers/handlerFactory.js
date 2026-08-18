@@ -1,3 +1,4 @@
+const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
@@ -40,15 +41,41 @@ exports.createOne = (Model) =>
       data: { data: doc },
     });
   });
-// exports.deleteTour = catchAsync(async (req, res, next) => {
-//   // const id = req.params.id * 1;
-//   // const tour = tours.find((el) => el.id === id);
-//   const tour = await Tour.findByIdAndDelete(req.params.id);
-//   if (!tour) {
-//     return next(new AppError('No tour found with that ID', 404));
-//   }
-//   res.status(204).json({
-//     status: 'success',
-//     data: null,
-//   });
-// });
+
+exports.getOne = (Model, popOptions) =>
+  catchAsync(async (req, res, next) => {
+    let query = Model.findById(req.params.id);
+    if (popOptions) query = query.populate(popOptions);
+
+    const doc = await query;
+    //Tour.findOne({_id:req.params.id})
+    if (!Model) {
+      return next(new AppError('No doc found with that ID', 404));
+    }
+    res.status(200).json({
+      status: 'success',
+      data: {
+        data: { doc },
+      },
+    });
+  });
+exports.getAll = (Model) =>
+  catchAsync(async (req, res, next) => {
+    //TO ALLOW FOR NESTED REVIEWS FOR TOUR
+    let filter = {};
+    if (req.params.tourId) filter = { tour: req.params.tourId };
+    const features = new APIFeatures(Model.find(filter), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const doc = await features.query;
+    //SEND RESPONSE
+    res.status(200).json({
+      status: 'success',
+      results: doc.length,
+      data: {
+        doc,
+      },
+    });
+  });
