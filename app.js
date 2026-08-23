@@ -12,6 +12,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
+const cookieParser = require('cookie-parser');
 const app = express();
 
 app.set('view engine', 'pug');
@@ -20,7 +21,52 @@ app.set('views', path.join(__dirname, 'views'));
 //Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 //Set Security HTTP Headers
-app.use(helmet());
+// Set security HTTP headers
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: {
+      allowOrigins: ['*'],
+    },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'", 'data:', 'blob:', 'https:', 'ws:'],
+        baseUri: ["'self'"],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        scriptSrc: [
+          "'self'",
+          'https:',
+          'http:',
+          'blob:',
+          'https://unpkg.com',
+          'https://cdnjs.cloudflare.com', // <--- Allowed Axios script
+        ],
+        frameSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+        workerSrc: ["'self'", 'data:', 'blob:'],
+        childSrc: ["'self'", 'blob:'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https:',
+          'https://*.openstreetmap.org',
+        ],
+        connectSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'data:',
+          'blob:',
+          'https://*.openstreetmap.org',
+          'https://unpkg.com',
+          'https://cdnjs.cloudflare.com',
+        ],
+        upgradeInsecureRequests: [],
+      },
+    },
+  }),
+);
 //Development logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -34,6 +80,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 //Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 //Data Sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -60,7 +107,7 @@ app.use(
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  console.log(req.headers);
+  console.log(req.cookies);
   next();
 });
 
