@@ -1,40 +1,37 @@
 /* eslint-disable */
-console.log('0. login.js file loaded successfully!');
+import axios from 'axios';
+import { showAlert } from './alerts';
 
-const login = async (email, password) => {
-  console.log('2. Login function called with:', email, password);
+export const login = async (email, password) => {
   try {
     const res = await axios({
       method: 'POST',
-      url: 'http://127.0.0.1:8000/api/v1/users/login',
+      url: '/api/v1/users/login',
       data: {
         email,
         password,
       },
     });
-    console.log('3. Success:', res);
-  } catch (err) {
-    console.log('3. Error caught!');
-    // This safety check prevents the catch block from crashing if it's a network error
-    if (err.response) {
-      console.log('Backend message:', err.response.data.message);
-    } else {
-      console.log('Raw error:', err);
+
+    if (res.data.status === 'success') {
+      showAlert('success', 'Logged in successfully!');
+
+      window.setTimeout(() => {
+        location.assign('/');
+      }, 1500);
     }
+  } catch (err) {
+    showAlert('error', err.response.data.message);
   }
 };
-
-const loginForm = document.querySelector('.form');
-console.log('0. Form element found?', loginForm);
-
-if (loginForm) {
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    console.log('1. Form submit event fired!');
-
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    login(email, password);
-  });
-}
+export const logout = async () => {
+  try {
+    const res = await axios({
+      method: 'GET',
+      url: '/api/v1/users/logout',
+    });
+    if (res.data.status === 'success') location.reload(true);
+  } catch (err) {
+    showAlert('error', 'Error Logging out! Try Again');
+  }
+};

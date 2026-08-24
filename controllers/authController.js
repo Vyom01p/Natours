@@ -58,6 +58,16 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'logout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(201).json({
+    status: 'success',
+  });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   //1) getting token and check if its there
   let token;
@@ -67,7 +77,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
-    token = req.cookies;
+    token = req.cookies.jwt;
   }
   if (!token) {
     return next(
@@ -93,6 +103,32 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+//Logged in
+//Only for rendered pages,no errors
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      //1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
+      //2)check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) return next();
+      //3) check if user changes password after the JWT was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+      //this is a logged in user
+      res.locals.user = currentUser;
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+};
 
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
