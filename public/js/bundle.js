@@ -12099,7 +12099,7 @@ var _login = require("./login");
 
 // import { logout } from '../../controllers/authController';
 
-var loginForm = document.querySelector('.form');
+var loginForm = document.querySelector('.form--login');
 var logoutBtn = document.querySelector('.nav__el--logout');
 if (loginForm) {
   loginForm.addEventListener('submit', function (e) {
